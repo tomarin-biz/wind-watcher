@@ -1,41 +1,30 @@
 import requests
-from bs4 import BeautifulSoup
 import os
 
-# --- CONFIGURATION ---
-URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 1  # <--- WRITE YOUR NUMBER HERE (No quotes)
-# ---------------------
+# Configuration
+STATION_ID = "1067"
+THRESHOLD = 1.0 # Set your wind speed threshold
+URL = f"https://api.holfuy.com/live/?s={STATION_ID}&pw=FREE&m=JSON&tu=C&su=m/s"
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-def send_alert(value):
-    message = f"🚨 Alert! The value is {value}, which is above {THRESHOLD}!"
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
-    requests.get(url)
+def send_alert(speed):
+    message = f"🌬️ Wind Alert! Station 1067 is reporting {speed} m/s!"
+    api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
+    requests.get(api_url)
 
-def check_site():
-    # Adding a 'User-Agent' makes you look like a real browser
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    res = requests.get(URL, headers=headers)
-    soup = BeautifulSoup(res.text, 'html.parser')
+def check_weather():
+    response = requests.get(URL)
+    data = response.json()
     
-    # Use your copied selector here
-    element = soup.select_one("#j_speed")
-    
-    if element:
-        # This cleaning logic handles cases like "$1,250.00" -> 1250.0
-        text_val = element.text.strip()
-        numeric_val = float(''.join(c for c in text_val if c.isdigit() or c == '.'))
+    # Holfuy API returns wind speed in the 'windSpeed' field
+    current_speed = float(data.get("windSpeed", 0))
+    print(f"Current Wind Speed: {current_speed}")
 
-        print(f"Current Value found: {numeric_val}")
-
-        if numeric_val > THRESHOLD:
-            send_alert(numeric_val)
-    else:
-        print("Error: Could not find the number on the page.")
+    if current_speed > THRESHOLD:
+        send_alert(current_speed)
 
 if __name__ == "__main__":
-    check_site()
+    check_weather()
     
