@@ -12,7 +12,7 @@ def send_alert(speed):
     # Adding the link to the message
     message = (
         f"🌬️ **Wind Alert!**\n"
-        f"Station 1067 is reporting **{speed} m/s**.\n\n"
+        f"Station 1067 is reporting **{speed} knots**.\n\n"
         f"Check live data here: {URL}"
     )
     
@@ -37,9 +37,9 @@ def run():
 
             if current_speed > THRESHOLD:
                 send_alert(current_speed)
-                print(f"Alert sent for {current_speed} m/s")
+                print(f"Alert sent for {current_speed} knots")
             else:
-                print(f"Checked: {current_speed} m/s is below threshold.")
+                print(f"Checked: {current_speed} knots is below threshold.")
                 
         except Exception as e:
             print(f"Error during check: {e}")
