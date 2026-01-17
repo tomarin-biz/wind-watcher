@@ -2,9 +2,9 @@ name: Web Monitor Cron
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
-
+    - cron: '*/5 * * * *'  # This tells GitHub to run every 5 minutes
+  workflow_dispatch:       # Keeps your manual button active
+  
 jobs:
   build:
     runs-on: ubuntu-latest
