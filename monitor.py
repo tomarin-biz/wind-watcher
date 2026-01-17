@@ -2,49 +2,43 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-# Configuration
-URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 0.1 # Set low for testing!
+# Configuration - Using the WAP version of the site
+URL = "https://holfuy.com/en/wap/1067"
+THRESHOLD = 0.1 # Testing threshold
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 def send_alert(speed):
-    message = f"🌬️ Wind Alert! Station 1067 is reporting {speed}!"
+    message = f"🌬️ Wind Alert! Station 1067 is reporting {speed} m/s!"
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
     requests.get(url)
 
 def check_weather():
-    # We use a 'User-Agent' to pretend we are a browser
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    
+    headers = {'User-Agent': 'Mozilla/5.0'}
     response = requests.get(URL, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Since #j_speed is dynamic, we look for the 'og:description' tag 
-    # which often contains the live weather summary in the metadata.
-    meta_desc = soup.find("meta", property="og:description")
     
-    if meta_desc:
-        text = meta_desc["content"]
-        print(f"Site Summary Found: {text}")
-        
-        # The text usually looks like: "Wind: 4.3 m/s, Temp: 12C..."
-        # We extract the first number we find after 'Wind:'
+    # This site is very simple HTML
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    # The WAP site lists data in bold tags or plain text. 
+    # We'll look for the string that contains "m/s"
+    page_text = soup.get_text()
+    print(f"Page Content: {page_text}") # For debugging
+
+    if "m/s" in page_text:
         try:
-            # Simple split to find the number near 'm/s'
-            speed_part = text.split('m/s')[0].split(' ')[-1]
-            current_speed = float(speed_part)
-            print(f"Extracted Speed: {current_speed}")
+            # Logic: Find 'm/s', look at the text immediately before it
+            parts = page_text.split("m/s")[0].strip().split()
+            current_speed = float(parts[-1])
+            print(f"Success! Extracted Speed: {current_speed}")
 
             if current_speed > THRESHOLD:
                 send_alert(current_speed)
         except Exception as e:
-            print(f"Could not parse speed from text: {e}")
+            print(f"Found m/s but couldn't parse number: {e}")
     else:
-        print("Could not find weather metadata. Site might be blocking the script.")
+        print("Still couldn't find the wind speed on the page.")
 
 if __name__ == "__main__":
     check_weather()
