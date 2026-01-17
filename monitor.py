@@ -1,36 +1,50 @@
 import requests
+from bs4 import BeautifulSoup
 import os
 
 # Configuration
-STATION_ID = "1067"
-THRESHOLD = 0.1  # Set to 0.1 JUST FOR TESTING so it triggers an alert
-URL = f"https://api.holfuy.com/live/?s={STATION_ID}&pw=FREE&m=JSON&tu=C&su=m/s"
+URL = "https://holfuy.com/en/weather/1067"
+THRESHOLD = 0.1 # Set low for testing!
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+def send_alert(speed):
+    message = f"🌬️ Wind Alert! Station 1067 is reporting {speed}!"
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
+    requests.get(url)
+
 def check_weather():
-    response = requests.get(URL)
-    data = response.json()
+    # We use a 'User-Agent' to pretend we are a browser
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
     
-    # DEBUG: This will show the full data in your GitHub logs
-    print(f"Full API Response: {data}")
+    response = requests.get(URL, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Holfuy API sometimes uses 'speed' instead of 'windSpeed'
-    # We will try to find the speed in a few common places:
-    speed = data.get("windSpeed") or data.get("speed") or 0
+    # Since #j_speed is dynamic, we look for the 'og:description' tag 
+    # which often contains the live weather summary in the metadata.
+    meta_desc = soup.find("meta", property="og:description")
     
-    current_speed = float(speed)
-    print(f"Processed Wind Speed: {current_speed}")
+    if meta_desc:
+        text = meta_desc["content"]
+        print(f"Site Summary Found: {text}")
+        
+        # The text usually looks like: "Wind: 4.3 m/s, Temp: 12C..."
+        # We extract the first number we find after 'Wind:'
+        try:
+            # Simple split to find the number near 'm/s'
+            speed_part = text.split('m/s')[0].split(' ')[-1]
+            current_speed = float(speed_part)
+            print(f"Extracted Speed: {current_speed}")
 
-    if current_speed > THRESHOLD:
-        print("Threshold exceeded! Sending Telegram message...")
-        message = f"🌬️ Wind Alert! Station 1067 is reporting {current_speed} m/s!"
-        api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
-        res = requests.get(api_url)
-        print(f"Telegram API Response: {res.status_code}")
+            if current_speed > THRESHOLD:
+                send_alert(current_speed)
+        except Exception as e:
+            print(f"Could not parse speed from text: {e}")
     else:
-        print("Speed is below threshold. No alert sent.")
+        print("Could not find weather metadata. Site might be blocking the script.")
 
 if __name__ == "__main__":
     check_weather()
