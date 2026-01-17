@@ -8,9 +8,18 @@ THRESHOLD = 3.0  # Keep low for testing
 def send_alert(speed):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    message = f"🌬️ Wind Alert! Station 1067 is reporting {speed} m/s!"
-    url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={message}"
+    
+    # Adding the link to the message
+    message = (
+        f"🌬️ **Wind Alert!**\n"
+        f"Station 1067 is reporting **{speed} m/s**.\n\n"
+        f"Check live data here: {URL}"
+    )
+    
+    # We add parse_mode=Markdown so the bold text works
+    url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={message}&parse_mode=Markdown"
     requests.get(url)
+
 
 def run():
     with sync_playwright() as p:
