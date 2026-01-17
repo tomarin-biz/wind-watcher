@@ -3,7 +3,7 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 0.1  # Keep low for testing
+THRESHOLD = 3.0  # Keep low for testing
 
 def send_alert(speed):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -14,30 +14,26 @@ def send_alert(speed):
 
 def run():
     with sync_playwright() as p:
-        # Launch browser
+        # Launch browser - we use chromium as it's the most reliable here
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         
-        print("Opening website...")
-        page.goto(URL)
-        
-        # Wait for the specific element to load (up to 10 seconds)
         try:
-            page.wait_for_selector("#j_speed", timeout=10000)
+            page.goto(URL, wait_until="networkidle") # Wait until the page stops loading
+            page.wait_for_selector("#j_speed", timeout=15000)
             speed_text = page.inner_text("#j_speed")
-            print(f"Raw speed found: {speed_text}")
             
-            # Clean and convert
+            # Extract number
             current_speed = float(''.join(c for c in speed_text if c.isdigit() or c == '.'))
-            print(f"Success! Extracted Speed: {current_speed}")
 
             if current_speed > THRESHOLD:
                 send_alert(current_speed)
+                print(f"Alert sent for {current_speed} m/s")
+            else:
+                print(f"Checked: {current_speed} m/s is below threshold.")
                 
         except Exception as e:
-            print(f"Error finding speed: {e}")
-            # Optional: save a screenshot to see what went wrong
-            page.screenshot(path="error.png")
+            print(f"Error during check: {e}")
             
         browser.close()
 
