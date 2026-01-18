@@ -12,7 +12,7 @@ def send_alert(speed):
     # Adding the link to the message
     message = (
         # f"🌬️ **Wind Alert!**\n"
-        f"**{speed} kt in the marina!**.\n\n"
+        f"**{speed} kts of wind in the marina!**\n\n"
         # f"Check live data here: {URL}"
     )
     
