@@ -11,9 +11,9 @@ def send_alert(speed):
     
     # Adding the link to the message
     message = (
-        f"🌬️ **Wind Alert!**\n"
-        f"Station 1067 is reporting **{speed} knots**.\n\n"
-        f"Check live data here: {URL}"
+        # f"🌬️ **Wind Alert!**\n"
+        f"**{speed} kt in the marina!**.\n\n"
+        # f"Check live data here: {URL}"
     )
     
     # We add parse_mode=Markdown so the bold text works
