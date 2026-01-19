@@ -3,23 +3,36 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 17.5  # Keep low for testing
+THRESHOLD = 1.5  # Keep low for testing
 
 def send_alert(speed):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
-    # Adding the link to the message
-    message = (
-        # f"🌬️ **Wind Alert!**\n"
-        f"**{speed} kts of wind in the marina!**\n\n"
-        # f"Check live data here: {URL}"
-    )
-    
-    # We add parse_mode=Markdown so the bold text works
-    url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={message}&parse_mode=Markdown"
-    requests.get(url)
+    # Check for empty variables to avoid errors
+    if not token or not chat_id:
+        print("❌ Error: Missing Telegram Token or Chat ID in GitHub Secrets")
+        return
 
+    message = f"**🌬️ {speed} kts of wind in the marina!**"
+    
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    
+    # We send the data in a 'payload' dictionary
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    
+    # Use .post() instead of .get()
+    response = requests.post(url, json=payload)
+    
+    # This part is key: it tells us WHY it failed if it doesn't work
+    if response.status_code == 200:
+        print(f"✅ Alert sent successfully to {chat_id}")
+    else:
+        print(f"❌ Failed to send alert. Telegram said: {response.text}")
 
 def run():
     with sync_playwright() as p:
