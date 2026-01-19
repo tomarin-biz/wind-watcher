@@ -3,9 +3,9 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 17.5  # Keep low for testing
+THRESHOLD = 1.5  # Keep low for testing
 
-def send_alert(speed):
+def send_alert(speed, gust):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
@@ -14,7 +14,7 @@ def send_alert(speed):
         print("❌ Error: Missing Telegram Token or Chat ID in GitHub Secrets")
         return
 
-    message = f"**🌬️ {speed} kts of wind in the marina!**"
+    message = f"**🌬️ {speed}-{gust} kts of wind in the marina!**"
     
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     
@@ -44,15 +44,17 @@ def run():
             page.goto(URL, wait_until="networkidle") # Wait until the page stops loading
             page.wait_for_selector("#j_speed", timeout=15000)
             speed_text = page.inner_text("#j_speed")
+            gust_text = page.inner_text("#j_gust")
             
             # Extract number
             current_speed = float(''.join(c for c in speed_text if c.isdigit() or c == '.'))
+            current_gust = float(''.join(c for c in gust_text if c.isdigit() or c == '.'))
 
             if current_speed > THRESHOLD:
-                send_alert(current_speed)
-                print(f"Alert sent for {current_speed} knots")
+                send_alert(current_speed, current_gust)
+                print(f"Alert sent for {current_speed}-{current_gust} kts")
             else:
-                print(f"Checked: {current_speed} knots is below threshold.")
+                print(f"Checked: {current_speed} kts is below threshold.")
                 
         except Exception as e:
             print(f"Error during check: {e}")
