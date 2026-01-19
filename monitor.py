@@ -3,7 +3,7 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 17.5  # Keep low for testing
+THRESHOLD = 1.5  # Keep low for testing
 
 def send_alert(speed, gust):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -14,7 +14,11 @@ def send_alert(speed, gust):
         print("❌ Error: Missing Telegram Token or Chat ID in GitHub Secrets")
         return
 
-    message = f"**{speed}-{gust} kts of wind in the marina!**"
+    #message = f"**{speed}-{gust} kts of wind in the marina!**"
+    message = f"""
+🌬️ {speed}-{gust} kts of wind in the marina!
+הרוח הגיעה ל {speed}-{gust} קשר במרינה!
+    """
     
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     
