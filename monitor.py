@@ -3,7 +3,8 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = "https://holfuy.com/en/weather/1067"
-THRESHOLD = 17.5  # Keep low for testing
+SPEED_THRESHOLD = 17.5  # Keep low for testing
+GUST_THRESHOLD = 25
 
 def send_alert(speed, gust):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -56,11 +57,11 @@ def run():
             current_speed = float(''.join(c for c in speed_text if c.isdigit() or c == '.'))
             current_gust = float(''.join(c for c in gust_text if c.isdigit() or c == '.'))
 
-            if current_speed > THRESHOLD:
+            if current_speed >= SPEED_THRESHOLD or current_gust >= GUST_THRESHOLD or tendency_text != "Stable":
                 send_alert(current_speed, current_gust)
                 print(f"Alert sent for {current_speed}-{current_gust} kts")
             else:
-                print(f"Checked: {current_speed} kts is below threshold.")
+                print(f"Checked: {current_speed} and {current_gust} kts are below thresholds and tendency is stable.")
                 
         except Exception as e:
             print(f"Error during check: {e}")
