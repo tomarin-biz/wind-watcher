@@ -6,7 +6,7 @@ URL = "https://holfuy.com/en/weather/1067"
 SPEED_THRESHOLD = 17.5  # Keep low for testing
 GUST_THRESHOLD = 25
 
-def send_alert(speed, gust):
+def send_alert(speed, gust, tendency):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     
@@ -17,7 +17,7 @@ def send_alert(speed, gust):
 
     #message = f"**{speed}-{gust} kts of wind in the marina!**"
     message = f"""
-🌬️ {speed}-{gust} kts of wind in the marina!
+🌬️ {speed}-{gust} kts of wind in the marina! The wind is {tendency}.
 הרוח הגיעה ל {speed}-{gust} קשר במרינה!
     """
     
@@ -58,7 +58,7 @@ def run():
             current_gust = float(''.join(c for c in gust_text if c.isdigit() or c == '.'))
 
             if current_speed >= SPEED_THRESHOLD or current_gust >= GUST_THRESHOLD or tendency_text != "Stable":
-                send_alert(current_speed, current_gust)
+                send_alert(current_speed, current_gust, tendency_text)
                 print(f"Alert sent for {current_speed}-{current_gust} kts")
             else:
                 print(f"Checked: {current_speed} and {current_gust} kts are below thresholds and tendency is stable.")
