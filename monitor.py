@@ -57,7 +57,7 @@ def run():
             current_speed = float(''.join(c for c in speed_text if c.isdigit() or c == '.'))
             current_gust = float(''.join(c for c in gust_text if c.isdigit() or c == '.'))
 
-            if current_speed >= SPEED_THRESHOLD or current_gust >= GUST_THRESHOLD or tendency_text != "Stable":
+            if current_speed >= SPEED_THRESHOLD or current_gust >= GUST_THRESHOLD or tendency_text not in ["Stable", "Calm"]:
                 send_alert(current_speed, current_gust, tendency_text)
                 print(f"Alert sent for {current_speed}-{current_gust} kts")
             else:
