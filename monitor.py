@@ -61,7 +61,7 @@ def run():
                 send_alert(current_speed, current_gust, tendency_text)
                 print(f"Alert sent for {current_speed}-{current_gust} kts")
             else:
-                print(f"Checked: {current_speed} and {current_gust} kts are below thresholds and tendency is stable.")
+                print(f"Checked: {current_speed} and {current_gust} kts are below thresholds and tendency is normal.")
                 
         except Exception as e:
             print(f"Error during check: {e}")
