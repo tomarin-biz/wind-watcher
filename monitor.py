@@ -49,6 +49,8 @@ def run():
             page.wait_for_selector("#j_speed", timeout=15000)
             speed_text = page.inner_text("#j_speed")
             gust_text = page.inner_text("#j_gust")
+            tendency_text = page.inner_text("#j_speed_tend_str")
+            print(tendency_text)
             
             # Extract number
             current_speed = float(''.join(c for c in speed_text if c.isdigit() or c == '.'))
