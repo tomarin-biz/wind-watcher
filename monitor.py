@@ -55,7 +55,7 @@ def run():
             
             print(tendency_text)
             if "%" in tendency_text: # Convert tendency percentage 
-                tendency_number = float(percentage_str.replace("%", ""))
+                tendency_number = float(tendency_text.replace("%", ""))
             else:  
                 tendency_number = 0.0
             print(tendency_number)
