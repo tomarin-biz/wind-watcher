@@ -1,10 +1,11 @@
-import os
+miimport os
 import requests
 from playwright.sync_api import sync_playwright
 
 URL = "https://holfuy.com/en/weather/1067"
 SPEED_THRESHOLD = 17.5  # Keep low for testing
 GUST_THRESHOLD = 25
+TENDENCY_THRESHOLD = 40
 
 def send_alert(speed, gust, tendency):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -51,13 +52,19 @@ def run():
             speed_text = page.inner_text("#j_speed")
             gust_text = page.inner_text("#j_gust")
             tendency_text = page.inner_text("#j_speed_tend_str")
-            print(tendency_text)
             
-            # Extract number
+            print(tendency_text)
+            if "%" in tendency_text: # Convert tendency percentage 
+                tendency_number = float(percentage_str.replace("%", ""))
+            else:  
+                tendency_number = 0.0
+            print(tendency_number)
+            
+            # Extract numbers
             current_speed = float(''.join(c for c in speed_text if c.isdigit() or c == '.'))
             current_gust = float(''.join(c for c in gust_text if c.isdigit() or c == '.'))
 
-            if current_speed >= SPEED_THRESHOLD or current_gust >= GUST_THRESHOLD or tendency_text not in ["Stable", "Calm"]:
+            if current_speed >= SPEED_THRESHOLD or current_gust >= GUST_THRESHOLD or tendency_number >= TENDENCY_THRESHOLD:
                 send_alert(current_speed, current_gust, tendency_text)
                 print(f"Alert sent for {current_speed}-{current_gust} kts")
             else:
