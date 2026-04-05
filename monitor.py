@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright
 URL = "https://holfuy.com/en/weather/1067"
 SPEED_THRESHOLD = 20
 GUST_THRESHOLD = 25
-TENDENCY_THRESHOLD = 75
+TENDENCY_THRESHOLD = 100
 
 def send_alert(speed, gust, tendency):
     token = os.getenv("TELEGRAM_BOT_TOKEN")
